@@ -1,4 +1,6 @@
 import time
+import os
+from typing import List
 import pandas as pd
 import numpy as np
 
@@ -38,10 +40,18 @@ class Tracker:
         self.cpu_augmt = SingleTrackedParameter() # Augement the data and convert to tensor
         self.cpu_tslst = SingleTrackedParameter() # Convert a list of tensor into 1 stacked tensor
         self.cpu_mvgpu = SingleTrackedParameter() # Move data from CPU memory to GPU Memory
-        self.gpu_fpexe = SingleTrackedParameter() # GPU Forward Pass
-        self.gpu_bpexe = SingleTrackedParameter() # GPU Backward Pass + Gradient Update
+        self.gpu_fbexe = SingleTrackedParameter() # GPU Forward + Backward Pass + Gradient Update
 
-    
+    def simple_print(self):
+        print()
+        print("Test Type                    |  Speed [ms]")
+        print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
+        print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
+        print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
+        print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
+        print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
+        print()
+
 ################## Machine Learning Model Stuff ##################
 
 class BasicModel(torch.nn.Module):
@@ -62,7 +72,7 @@ class BasicModel(torch.nn.Module):
         self.fin = nn.Sequential(
             nn.Linear(128 * 32 * 32, 128),
             nn.LeakyReLU(0.1),
-            nn.Linear(128, 2),
+            nn.Linear(128, 3),
             nn.Softmax(dim = 1)
         )
     
@@ -74,9 +84,33 @@ class BasicModel(torch.nn.Module):
         return x
 
 
-################## Device Checker Stuff ##################
+################## Dataset Management Stuff ##################
 
+def GrabDataset() -> List:
+    dataset = []
+    ## Grab All Fire Images From Dataset
+    for fnam in os.listdir("./dataset/Fire"):
+        full_fname = os.path.join('./dataset/Fire', fnam)
+        data_label = np.array([0, 0, 1])
+        dataset.append( (full_fname, data_label) )
 
+    ## Grab All Food Images From 
+    for fnam in os.listdir("./dataset/Food"):
+        full_fname = os.path.join('./dataset/Food', fnam)
+        data_label = np.array([0, 1, 0])
+        dataset.append( (full_fname, data_label) )
+    
+    ## Grab All Landscape Images
+    for fnam in os.listdir("./dataset/Landscape"):
+        full_fname = os.path.join('./dataset/Landscape', fnam)
+        data_label = np.array([1, 0, 0])
+        dataset.append( (full_fname, data_label) )
+
+    print("Dataset Loading Complete !\n")
+    return dataset
+
+    
+    
 ################## Single File Stuff ##################
 
 if __name__ == '__main__':
