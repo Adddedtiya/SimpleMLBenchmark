@@ -89,20 +89,20 @@ class BasicModel(torch.nn.Module):
 def GrabDataset() -> List:
     dataset = []
     ## Grab All Fire Images From Dataset
-    for fnam in os.listdir("./dataset/Fire"):
-        full_fname = os.path.join('./dataset/Fire', fnam)
+    for fnam in os.listdir("./dataset/"):
+        full_fname = os.path.join('./dataset/', fnam)
         data_label = np.array([0, 0, 1])
         dataset.append( (full_fname, data_label) )
 
     ## Grab All Food Images From 
-    for fnam in os.listdir("./dataset/Food"):
-        full_fname = os.path.join('./dataset/Food', fnam)
+    for fnam in os.listdir("./dataset/"):
+        full_fname = os.path.join('./dataset/', fnam)
         data_label = np.array([0, 1, 0])
         dataset.append( (full_fname, data_label) )
     
     ## Grab All Landscape Images
-    for fnam in os.listdir("./dataset/Landscape"):
-        full_fname = os.path.join('./dataset/Landscape', fnam)
+    for fnam in os.listdir("./dataset/"):
+        full_fname = os.path.join('./dataset/', fnam)
         data_label = np.array([1, 0, 0])
         dataset.append( (full_fname, data_label) )
 
