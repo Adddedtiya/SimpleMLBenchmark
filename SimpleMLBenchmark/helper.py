@@ -3,6 +3,7 @@ import os
 from typing import List
 import pandas as pd
 import numpy as np
+import math
 
 import torch
 import torch.nn as nn
@@ -34,7 +35,7 @@ class SingleTrackedParameter:
     
 
 class Tracker:
-    def __init__(self, device = 'cuda') -> None:
+    def __init__(self, device = 'cuda:0') -> None:
         self.deviceuse = device # device used for this test
         self.dsk_loadf = SingleTrackedParameter() # Load 1 File From Disk
         self.cpu_augmt = SingleTrackedParameter() # Augement the data and convert to tensor
@@ -43,14 +44,37 @@ class Tracker:
         self.gpu_fbexe = SingleTrackedParameter() # GPU Forward + Backward Pass + Gradient Update
 
     def simple_print(self):
-        print()
         print("Test Type                    |  Speed [ms]")
-        print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
-        print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
-        print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
-        print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
-        print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
+        
+        if "cuda" in str(self.deviceuse):
+            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
+            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
+            print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
+            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
+            print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
+        else:
+            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
+            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
+            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
+            print("CPU  - Model CPU Execution   :", self.gpu_fbexe.get_average_ms())
         print()
+        epoch_time = self.compute_score()            
+        print("Average Per Epoch Execution  :", epoch_time)
+        print()
+        print("Final RY-Score :", math.ceil(10_000 - epoch_time))
+        print()
+    
+    def compute_score(self):
+        c_aug = self.cpu_augmt.get_average_ms()
+        c_tlt = self.cpu_tslst.get_average_ms()
+        c_mvg = self.cpu_mvgpu.get_average_ms()
+        d_lod = self.dsk_loadf.get_average_ms()
+        g_exe = self.gpu_fbexe.get_average_ms()
+        if "cuda" in str(self.deviceuse):
+            sum = c_aug + c_tlt + c_mvg + d_lod + g_exe
+        else:
+            sum = c_aug + c_tlt + d_lod + g_exe
+        return sum
 
 ################## Machine Learning Model Stuff ##################
 
@@ -89,20 +113,20 @@ class BasicModel(torch.nn.Module):
 def GrabDataset() -> List:
     dataset = []
     ## Grab All Fire Images From Dataset
-    for fnam in os.listdir("./dataset/"):
-        full_fname = os.path.join('./dataset/', fnam)
+    for fnam in os.listdir("./dataset/Food-1"):
+        full_fname = os.path.join('./dataset/Food-1', fnam)
         data_label = np.array([0, 0, 1])
         dataset.append( (full_fname, data_label) )
 
     ## Grab All Food Images From 
-    for fnam in os.listdir("./dataset/"):
-        full_fname = os.path.join('./dataset/', fnam)
+    for fnam in os.listdir("./dataset/Food-2"):
+        full_fname = os.path.join('./dataset/Food-2', fnam)
         data_label = np.array([0, 1, 0])
         dataset.append( (full_fname, data_label) )
     
     ## Grab All Landscape Images
-    for fnam in os.listdir("./dataset/"):
-        full_fname = os.path.join('./dataset/', fnam)
+    for fnam in os.listdir("./dataset/Food-3"):
+        full_fname = os.path.join('./dataset/Food-3', fnam)
         data_label = np.array([1, 0, 0])
         dataset.append( (full_fname, data_label) )
 
