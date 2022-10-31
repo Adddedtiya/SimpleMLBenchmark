@@ -61,7 +61,8 @@ class Tracker:
         epoch_time = self.compute_score()            
         print("Average Per Epoch Execution  :", epoch_time)
         print()
-        print("Final RY-Score :", math.ceil(10_000 - epoch_time))
+        ryscore = (2000 - epoch_time) * 5
+        print("Final RY-Score :", math.ceil(ryscore))
         print()
     
     def compute_score(self):
@@ -70,10 +71,7 @@ class Tracker:
         c_mvg = self.cpu_mvgpu.get_average_ms()
         d_lod = self.dsk_loadf.get_average_ms()
         g_exe = self.gpu_fbexe.get_average_ms()
-        if "cuda" in str(self.deviceuse):
-            sum = c_aug + c_tlt + c_mvg + d_lod + g_exe
-        else:
-            sum = c_aug + c_tlt + d_lod + g_exe
+        sum = c_aug + c_tlt + c_mvg + d_lod + g_exe
         return sum
 
 ################## Machine Learning Model Stuff ##################
