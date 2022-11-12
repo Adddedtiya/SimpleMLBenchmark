@@ -1,7 +1,6 @@
 import time
 import os
 from typing import List
-import pandas as pd
 import numpy as np
 import math
 
@@ -45,18 +44,11 @@ class Tracker:
 
     def simple_print(self):
         print("Test Type                    |  Speed [ms]")
-        
-        if "cuda" in str(self.deviceuse):
-            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
-            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
-            print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
-            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
-            print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
-        else:
-            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
-            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
-            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
-            print("CPU  - Model CPU Execution   :", self.gpu_fbexe.get_average_ms())
+        print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
+        print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
+        print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
+        print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
+        print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
         print()
         epoch_time = self.compute_score()            
         print("Average Per Epoch Execution  :", epoch_time)
@@ -95,7 +87,7 @@ class BasicModel(torch.nn.Module):
             nn.Linear(128 * 32 * 32, 128),
             nn.LeakyReLU(0.1),
             nn.Linear(128, 3),
-            nn.Softmax(dim = 1)
+            nn.ReLU()
         )
     
     def forward(self, x):

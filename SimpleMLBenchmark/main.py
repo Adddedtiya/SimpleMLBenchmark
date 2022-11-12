@@ -1,6 +1,5 @@
 import torch
 import random
-import numpy as np
 from tqdm import tqdm
 from PIL import Image
 import torchvision.transforms.functional as TTFF
@@ -9,11 +8,11 @@ from helper import Tracker, BasicModel, GrabDataset
 
 total_epochs = 128
 batch_size   = 64
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "dml"
 track = Tracker(device)
 
 print("")
-print("Simple Machine Learning Device Benchmark")
+print("Simple Machine Learning Device Benchmark - DML Version")
 print("Batch size  :", batch_size)
 print("Total epoch :", total_epochs)
 print("Device used :", device)
@@ -21,7 +20,7 @@ print()
 
 model = BasicModel().to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr = 0.0001)
-lossFunction = torch.nn.SmoothL1Loss()
+lossFunction = torch.nn.MSELoss()
 dataset = GrabDataset()
 
 print("Starting Logging !")
@@ -80,4 +79,5 @@ for epoch_counter in range(total_epochs):
 
 print("Logging Complete!, Compiling Results...")
 print()
+print("MoDe : DML")
 track.simple_print()
