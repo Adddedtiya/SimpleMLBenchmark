@@ -1,7 +1,6 @@
 import time
 import os
 from typing import List
-import pandas as pd
 import numpy as np
 import math
 
@@ -35,7 +34,7 @@ class SingleTrackedParameter:
     
 
 class Tracker:
-    def __init__(self, device = 'cuda:0') -> None:
+    def __init__(self, device = 'cuda') -> None:
         self.deviceuse = device # device used for this test
         self.dsk_loadf = SingleTrackedParameter() # Load 1 File From Disk
         self.cpu_augmt = SingleTrackedParameter() # Augement the data and convert to tensor
@@ -45,24 +44,23 @@ class Tracker:
 
     def simple_print(self):
         print("Test Type                    |  Speed [ms]")
-        
-        if "cuda" in str(self.deviceuse):
+        if "cpu" in str(self.deviceuse):
+            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
+            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
+            print("CPU  - Model CPU Execution   :", self.gpu_fbexe.get_average_ms())
+            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
+        else:
             print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
             print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
             print("CPU  - Move data to GPU RAM  :", self.cpu_mvgpu.get_average_ms())
             print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
             print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
-        else:
-            print("CPU  - Image Augmentation    :", self.cpu_augmt.get_average_ms())
-            print("CPU  - Tensor Stacking       :", self.cpu_tslst.get_average_ms())
-            print("DISK - Grab File From Disk   :", self.dsk_loadf.get_average_ms())
-            print("CPU  - Model CPU Execution   :", self.gpu_fbexe.get_average_ms())
-        print()
         epoch_time = self.compute_score()            
-        print("Average Per Epoch Execution  :", epoch_time)
         print()
         ryscore = (2000 - epoch_time) * 5
-        print("Final RY-Score :", math.ceil(ryscore))
+        print("Average Per Epoch Execution  :", epoch_time)
+        print("Final RY-Score               :", math.ceil(ryscore))
+        print("Pytorch Device               :", self.deviceuse)
         print()
     
     def compute_score(self):
@@ -95,7 +93,7 @@ class BasicModel(torch.nn.Module):
             nn.Linear(128 * 32 * 32, 128),
             nn.LeakyReLU(0.1),
             nn.Linear(128, 3),
-            nn.Softmax(dim = 1)
+            nn.ReLU()
         )
     
     def forward(self, x):
@@ -131,8 +129,66 @@ def GrabDataset() -> List:
     print("Dataset Loading Complete !\n")
     return dataset
 
+
+################## Check and Request Device ##################    
+
+def check_device(device_str):
+    x = torch.tensor([1])
+    try:
+        x = x.to(device_str)
+    except:
+        return False
+    del x
+    return True
+
+def grab_torch_device(args) -> str:
+    print()
+    print("Checking Avaliable Devices...")
+
+    avcuda = check_device('cuda')
+    avdml  = check_device('dml')
+    avappl = check_device('mps')
+
+    print("CUDA      :", avcuda)
+    print("DirectML  :", avdml)
+    print("Apple M1  :", avappl)
+    print()
+    rqcuda   = bool(args.cuda)
+    rqdml    = bool(args.dml)
+    rqappple = bool(args.apple)
+    rqcpu    = bool(args.cpu)
+
+    # CPU have priority in Request
+    if rqcpu:
+        return "cpu"
+
+    if rqcuda:
+        if avcuda:
+            return "cuda"
+        else:
+            raise Exception("cuda is requested but no cuda device exist !")
+
+    if rqdml:
+        if avdml:
+            return "dml"
+        else:
+            raise Exception("DirectML is not found !")
     
-    
+    if rqappple:
+        if avappl:
+            return "mps"
+        else:
+            raise Exception("This option is for Apple Mx Devices Only")
+
+    # Automatic Best Device allocation
+    if avcuda:
+        return "cuda"
+    if avdml:
+        return "dml"
+    if avappl:
+        return "mps"
+    return "cpu"
+
 ################## Single File Stuff ##################
 
 if __name__ == '__main__':

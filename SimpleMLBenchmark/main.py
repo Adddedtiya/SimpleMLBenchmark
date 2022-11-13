@@ -1,19 +1,32 @@
 import torch
 import random
-import numpy as np
 from tqdm import tqdm
 from PIL import Image
 import torchvision.transforms.functional as TTFF
+import argparse
 
-from helper import Tracker, BasicModel, GrabDataset
+from helper import Tracker, BasicModel, GrabDataset, grab_torch_device
 
-total_epochs = 128
-batch_size   = 64
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-track = Tracker(device)
+# Create the parser
+parser = argparse.ArgumentParser()
+
+# Add an argument
+parser.add_argument('--cuda', action='store_true')
+parser.add_argument('--dml',  action='store_true')
+parser.add_argument('--apple',action='store_true')
+parser.add_argument('--cpu',  action='store_true')
+
+# Parse the argument
+args = parser.parse_args()
 
 print("")
 print("Simple Machine Learning Device Benchmark")
+
+total_epochs = 128
+batch_size   = 64
+device = grab_torch_device(args)
+track = Tracker(device)
+
 print("Batch size  :", batch_size)
 print("Total epoch :", total_epochs)
 print("Device used :", device)
@@ -21,7 +34,7 @@ print()
 
 model = BasicModel().to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr = 0.0001)
-lossFunction = torch.nn.SmoothL1Loss()
+lossFunction = torch.nn.MSELoss()
 dataset = GrabDataset()
 
 print("Starting Logging !")
