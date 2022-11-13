@@ -1,6 +1,7 @@
 import torch
 import random
 from tqdm import tqdm
+import numpy as np
 from PIL import Image
 import torchvision.transforms.functional as TTFF
 import argparse
@@ -34,7 +35,7 @@ print()
 
 model = BasicModel().to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr = 0.0001)
-lossFunction = torch.nn.MSELoss()
+lossFunction = torch.nn.L1Loss()
 dataset = GrabDataset()
 
 print("Starting Logging !")
@@ -49,6 +50,7 @@ for epoch_counter in range(total_epochs):
 
         list_x = []
         list_y = []
+        lss = []
         for imgFilePath, labelOneHot in batch_dataset:
 
             track.dsk_loadf.start()
@@ -86,9 +88,10 @@ for epoch_counter in range(total_epochs):
         output = model(image)
         loss = lossFunction(output, label)
         loss.backward()
+        lss.append(loss.item())
         optimizer.step()
         track.gpu_fbexe.stop()
-    
+    print("loss :", np.average(lss))
     print("")
 
 print("Logging Complete!, Compiling Results...")
