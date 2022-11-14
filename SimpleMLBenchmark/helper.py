@@ -57,7 +57,7 @@ class Tracker:
             print("GPU  - Overall GPU Execution :", self.gpu_fbexe.get_average_ms())
         epoch_time = self.compute_score()            
         print()
-        ryscore = (2000 - epoch_time) * 5
+        ryscore = (1_000 / epoch_time) * 100
         print("Average Per Epoch Execution  :", epoch_time)
         print("Final RY-Score               :", math.ceil(ryscore))
         print("Pytorch Device               :", self.deviceuse)
@@ -151,7 +151,7 @@ def grab_torch_device(args) -> str:
 
     print("CUDA      :", avcuda)
     print("DirectML  :", avdml)
-    print("Apple M1  :", avappl)
+    print("Apple Mx  :", avappl)
     print()
     rqcuda   = bool(args.cuda)
     rqdml    = bool(args.dml)
