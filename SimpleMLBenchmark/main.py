@@ -1,4 +1,5 @@
 import torch
+import torch_directml # directml support!
 import random
 from tqdm import tqdm
 import numpy as np
@@ -25,7 +26,7 @@ print("Simple Machine Learning Device Benchmark")
 
 total_epochs = 128
 batch_size   = 64
-device = grab_torch_device(args)
+device = torch_directml.device() # this is a variable now, not a string
 track = Tracker(device)
 
 print("Batch size  :", batch_size)
